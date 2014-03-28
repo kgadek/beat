@@ -82,10 +82,10 @@ handle_info({'DOWN', MonRef, process, Pid, _Info},
 terminate(_Reason, #state{}=_S) ->
     ok.
 
-code_change(_OldVsn, #state{}=S, [from1to2]) ->
-    {ok, S#state{timeout=timer:seconds(10)}};
-code_change(_OldVsn, #state{}=S, [from2to1]) ->
-    {ok, S#state{timeout=timer:seconds(1)}}.
+code_change(_OldVsn, #state{count=C1}=S, [from1to2]) ->
+    {ok, S#state{timeout=timer:seconds(3), count=C1+1000000}};
+code_change(_OldVsn, #state{count=C2}=S, [from2to1]) ->
+    {ok, S#state{timeout=timer:seconds(1), count=C2-1000000}}.
 
 %% ===================================================================
 %%  Internal Functions
@@ -141,8 +141,8 @@ protocol_test_() ->
     ].
 
 code_change_test_() ->
-    S1  = #state{timeout=timer:seconds(1)},
-    S10 = #state{timeout=timer:seconds(10)},
+    S1  = #state{timeout=timer:seconds(1), count=0},
+    S10 = #state{timeout=timer:seconds(3), count=1000000},
 
     [
      ?_assertMatch({ok, S1},  code_change(old_vsn, S10, [from2to1])),
